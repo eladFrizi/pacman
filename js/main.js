@@ -12,7 +12,8 @@ import {
 
 import render from './render.js'
 const {
-  pipe
+  pipe,
+  assoc
 } = R
 
 const SIMPLE_FOOD = '.'
@@ -40,33 +41,19 @@ const getCell = ({ i, j }) =>
     j
   })
 
+const getWallCell = pipe(getCell,assoc('isWall', true))
+const getSimpleFoodCell = pipe(getCell,assoc('food', SIMPLE_FOOD))
+const getSuperFoodCell = pipe(getCell,assoc('food', SUPER_FOOD))
 
-const getWallCell = ({ i, j }) => {
-  const cell = getCell({
-    i,
-    j
-  })
-  cell.isWall = true
-  return cell
-}
 
-const getSimpleFoodCell = ({ i, j }) => {
-  const cell = getCell({
-    i,
-    j
-  })
-  cell.food = SIMPLE_FOOD
-  return cell
-}
-
-const getSuperFoodCell = ({ i, j }) => {
-  const cell = getCell({
-    i,
-    j
-  })
-  cell.food = SUPER_FOOD
-  return cell
-}
+// const getSuperFoodCell = ({ i, j }) => {
+//   const cell = getCell({
+//     i,
+//     j
+//   })
+//   cell.food = SUPER_FOOD
+//   return cell
+// }
 
 const isWallCord = ({ i, j, size }) =>
   (i === 0 || i === size - 1 || j === 0 || j === size - 1)
@@ -118,7 +105,9 @@ const initState = x => {
   const board = createBoard(21)
   const ghosts = getInitialGhosts(3, board)
   const pacman = getInitialPacman(board)
-  return { board, ghosts, pacman }
+  const isGameOver = false;
+  const isPowerMode = false
+  return { board, ghosts, pacman, isGameOver, isPowerMode }
 }
 
 
@@ -146,20 +135,26 @@ const moveGhosts = (board, ghosts) => {
     var oppositeDir = getOppositeDirection(currDir)
     var newDir = getDirectionForCorner(wrongDir, currDir, oppositeDir)
     var newLoc = getNextLocation({ i: g.i, j: g.j, direction: newDir })
-     return { ...newGhost, ...newLoc, direction: newDir}
+    return { ...newGhost, ...newLoc, direction: newDir }
   })
 }
 
-const findGhostInPacmanPlace = ({pacman,ghosts}) => {
+const findGhostInPacmanPlace = ({ pacman, ghosts }) => {
   return ghosts.find(g => g.i === pacman.i && g.j === pacman.j)
 }
 
 const runGameCycle = () => {
   gState.ghosts = moveGhosts(gState.board, gState.ghosts)
   var ghostInPacman = findGhostInPacmanPlace(gState)
-  if (ghostInPacman){
-    //TODO: gameover.
+  if (ghostInPacman) {
+    if(gState.isPowerMode) {
+      //TODO: Kill ghost
+    } else {
+      //TODO: game over.
+      gState.isGameOver = true;
+    }
   }
+
   render.renderGame(gState)
 }
 
@@ -174,15 +169,7 @@ document.querySelector('.next-cycle').addEventListener('click', x => {
   runGameCycle()
 })
 document.querySelector('.next-cycle-5').addEventListener('click', x => {
-  for (var i = 0; i < 5; i++){
+  for (var i = 0; i < 5; i++) {
     runGameCycle()
   }
 })
-
-
-
-
-
-
-
-// console.log(moveGhosts(gState.ghosts))
