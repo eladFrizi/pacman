@@ -10,9 +10,8 @@ import {
     getOppositeDirection
 } from './directionService.js';
 import render from './render.js'
-const R = require('ramda')
-console.log({ R })
-console
+import * as R from 'ramda';
+
 const SIMPLE_FOOD = '.'
 const SUPER_FOOD = '$'
 
@@ -106,7 +105,7 @@ const initState = x => {
     const pacman = getInitialPacman(board)
     const isGameOver = false;
     const score = 0;
-    const powerModeSteps = 200;
+    const powerModeSteps = 10;
     const deadGhosts = []
     return { board, ghosts, pacman, isGameOver, powerModeSteps, score, deadGhosts, foodCount }
 }
@@ -173,7 +172,6 @@ const eatFood = ({ score, powerModeSteps, ...state }) => {
 }
 
 const killGhost = (ghostInPacman, state) => {
-    console.log('inside kil gohotst')
     if (!state.powerModeSteps) return state
     const checkNotEaten = R.pipe(R.equals(ghostInPacman), R.not)
     const liveGhosts = (R.filter(checkNotEaten, state.ghosts))
@@ -189,7 +187,7 @@ const checkEngagement = (state) => {
     return R.ifElse(
         checkIsPowerModeOn,
         R.partial(killGhost, [ghostInPacman]),
-        R.tap(s => console.log('TODO: Finish the game'))
+        R.assoc('isGameOver',true)
     )(state)
 }
 
@@ -200,9 +198,6 @@ const decPowerModeSteps = ({ powerModeSteps, ...state }) => {
 const isPowerModeJustFinish = (state) => R.equals(0, state.powerModeSteps)
 
 const revivalGhosts = (state) => {
-    console.log(state.deadGhosts)
-    console.log('hey world')
-    console.log(getInitialGhosts(state.deadGhosts.length, state.board))
     return {
         ...state,
         ghosts: [...state.ghosts,
@@ -221,16 +216,19 @@ const runGameCycle = () => {
         eatFood,
         decPowerModeSteps,
         R.when(isPowerModeJustFinish, revivalGhosts),
-        R.tap(console.log),
+        // R.tap(console.log),
         R.tap(render.renderGame)
     )(gState)
+    if (gState.isGameOver){
+        clearInterval(gGameInterval)
+    }
 }
 
 
 var gState = initState()
 render.renderGame(gState)
 
-// setInterval(runGameCycle, 100)
+var  gGameInterval = setInterval(runGameCycle, 100)
 
 
 document.querySelector('.next-cycle').addEventListener('click', x => {
