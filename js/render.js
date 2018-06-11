@@ -44,14 +44,16 @@ const  renderEl = selector => {
   }
 }
 const renderPowerModeSteps = renderEl('.steps')
+const renderFoodCount = renderEl('.food-count')
 
 
 
-const renderGame = ({ board, ghosts, pacman, powerModeSteps }) => {
+const renderGame = ({ board, ghosts, pacman, powerModeSteps,currFoodCount }) => {
   renderBoard(board)
   renderGhosts(ghosts)
   renderPacman(pacman)
   renderPowerModeSteps(powerModeSteps)
+  renderFoodCount(currFoodCount)
 }
 
 

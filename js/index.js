@@ -100,14 +100,15 @@ const countFood = (board) => {
 
 const initState = x => {
     const board = createBoard(21)
-    const foodCount = countFood(board)
+    const currFoodCount = countFood(board)
+    const maximalFoodCount = currFoodCount
     const ghosts = getInitialGhosts(3, board)
     const pacman = getInitialPacman(board)
     const isGameOver = false;
     const score = 0;
     const powerModeSteps = 10;
     const deadGhosts = []
-    return { board, ghosts, pacman, isGameOver, powerModeSteps, score, deadGhosts, foodCount }
+    return { board, ghosts, pacman, isGameOver, powerModeSteps, score, deadGhosts, currFoodCount, maximalFoodCount }
 }
 
 const checkIsPowerModeOn = R.pipe(
@@ -161,14 +162,17 @@ const movePacman = (state) => {
 const eatFood = ({ score, powerModeSteps, ...state }) => {
     const { i, j } = state.pacman
     const currCell = state.board[i][j]
+    let currFoodCount = state.currFoodCount
     if (currCell.food === SIMPLE_FOOD) {
         score += 1
+        currFoodCount--
     } else if (currCell.food === SUPER_FOOD) {
         score += 10
         state.powerModeSteps = 50
+        currFoodCount--
     }
     currCell.food = ''
-    return { score, powerModeSteps, ...state }
+    return { score, powerModeSteps, ...state,currFoodCount }
 }
 
 const killGhost = (ghostInPacman, state) => {
@@ -206,8 +210,17 @@ const revivalGhosts = (state) => {
     }
 }
 
+const isRenewFoodNeeded = state => state.currFoodCount <= 0
+const renewFood = (state) => {
+    console.log('inside renew food')
+    return {
+        ...state , board: createBoard(state.board.length), 
+        currFoodCount: state.maximalFoodCount
+    }
+}
 const runGameCycle = () => {
     // each function get the state and return new state.
+    gState.powerModeSteps = 10
     gState = R.pipe(
         moveGhosts,
         checkEngagement,
@@ -216,7 +229,7 @@ const runGameCycle = () => {
         eatFood,
         decPowerModeSteps,
         R.when(isPowerModeJustFinish, revivalGhosts),
-        // R.tap(console.log),
+        R.when(isRenewFoodNeeded, renewFood),
         R.tap(render.renderGame)
     )(gState)
     if (gState.isGameOver){
